@@ -1,8 +1,10 @@
 package com.fajaralfa.threeapprover;
 
 import EnhydraShark.App;
+import org.hibernate.jdbc.Work;
 import org.joget.apps.app.service.AppService;
 import org.joget.apps.app.service.AppUtil;
+import org.joget.commons.util.LogUtil;
 import org.joget.plugin.base.DefaultApplicationPlugin;
 import org.joget.workflow.model.WorkflowAssignment;
 import org.joget.workflow.model.service.WorkflowManager;
@@ -30,8 +32,12 @@ public class ThreeApproverMapper extends DefaultApplicationPlugin {
     @Override
     public Object execute(Map map) {
         AppService appService = (AppService) AppUtil.getApplicationContext().getBean("appService");
+        WorkflowManager workflowManager = (WorkflowManager) AppUtil.getApplicationContext().getBean("workflowManager");
+
         WorkflowAssignment workflowAssignment = (WorkflowAssignment) map.get("workflowAssignment");
-        WorkflowManager workflowManager = (WorkflowManager) map.get("workflowManager");
+
+        LogUtil.info(getClassName(), "workflowManager " + workflowManager);
+        LogUtil.info(getClassName(), "workflowAssignment " + workflowAssignment);
 
         String processId = workflowAssignment.getProcessId();
         String primaryKey = appService.getOriginProcessId(processId);
@@ -40,10 +46,13 @@ public class ThreeApproverMapper extends DefaultApplicationPlugin {
 
         // get requester username
         String requesterUsername = dao.getRequesterUsername(primaryKey);
+        LogUtil.info(getClassName(), "Username: " + requesterUsername);
         // query, get approvers by requester
         HashMap<String, String> threeApprovers = dao.getThreeApprovers(requesterUsername);
         // store result to workflow variable
         threeApprovers.forEach((k, v) -> {
+            LogUtil.info(getClassName(), "Key: " + k);
+            LogUtil.info(getClassName(), "Val: " + v);
             workflowManager.activityVariable(workflowAssignment.getActivityId(), k, v);
         });
 
